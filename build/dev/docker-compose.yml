@@ -1,0 +1,112 @@
+# ---------------------------------------------------------------------------
+# ant :: dev stack
+#   nginx  -> published on the host, rate limits, proxies to app
+#   app    -> axum on 6353, container-network only
+#   db     -> postgres + pgvector
+# The app image builds from the repo root (it needs Cargo.toml); db and nginx
+# build from this directory.
+# ---------------------------------------------------------------------------
+name: ant_dev
+
+services:
+  db:
+    build:
+      context: .
+      dockerfile: Dockerfile.db
+    image: ant/db:dev
+    container_name: ant_dev_db
+    restart: unless-stopped
+    env_file:
+      - env/.env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-ant}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ant}
+      POSTGRES_DB: ${POSTGRES_DB:-ant}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      # Loopback only — handy for psql//migrations, not reachable off-box.
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ant} -d ${POSTGRES_DB:-ant}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    networks:
+      - ant_dev_default
+
+  app:
+    build:
+      context: ../..
+      dockerfile: build/dev/Dockerfile.app
+    image: ant/app:dev
+    container_name: ant_dev_app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - env/.env
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-ant}:${POSTGRES_PASSWORD:-ant}@db:5432/${POSTGRES_DB:-ant}
+      APP_PORT: "6353"
+      ANT_DIST_DIR: /app/dist
+      RUST_LOG: ${RUST_LOG:-debug}
+    # No `ports:` on purpose — reachable only through nginx.
+    expose:
+      - "6353"
+    volumes:
+      - ../../src:/app/src
+      - ../../web:/app/web
+      - ../../Cargo.toml:/app/Cargo.toml
+      - ../../Cargo.lock:/app/Cargo.lock
+      - ../../migrations:/app/migrations
+      - web_dist:/app/dist
+      - cargo_target:/build-target
+      - cargo_registry:/usr/local/cargo/registry
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:6353/api/health >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 120s
+    networks:
+      - ant_dev_default
+
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    image: ant/nginx:dev
+    container_name: ant_dev_nginx
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "${NGINX_PORT:-8080}:8035"
+    volumes:
+      # Edit the conf and `./start.sh -r nginx` — no image rebuild needed.
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost/healthz >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - ant_dev_default
+
+volumes:
+  db_data:
+  web_dist:
+  cargo_target:
+  cargo_registry:
+
+networks:
+  ant_dev_default:
+    name: ant_dev_default

@@ -1,0 +1,10 @@
+[build]
+target = "index.html"
+dist = "../dist"     # served by the axum container at /
+release = false
+public_url = "/"
+filehash = true
+
+[watch]
+watch = ["src", "index.html", "styles.css", "Cargo.toml"]
+ignore = ["../dist", "../target"]

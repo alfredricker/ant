@@ -1,0 +1,11 @@
+# The app image bind-mounts src/ at runtime; keep the build context tiny.
+target/
+build-target/
+.git/
+.github/
+**/*.rs.bk
+**/mutants.out*/
+.idea/
+.vscode/
+.DS_Store
+build/dev/env/.env

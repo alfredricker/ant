@@ -1,0 +1,12 @@
+# ---------------------------------------------------------------------------
+# ant :: dev database
+# Postgres + pgvector, used for relational data and embedding similarity search.
+# ---------------------------------------------------------------------------
+FROM pgvector/pgvector:pg17
+
+ENV LANG=C.UTF-8
+
+# No init scripts on purpose: schema and extensions come from ./migrations,
+# applied by the app on startup, so dev and prod run the same SQL.
+
+EXPOSE 5432

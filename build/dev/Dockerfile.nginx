@@ -1,0 +1,13 @@
+# ---------------------------------------------------------------------------
+# ant :: dev reverse proxy
+# The only container published to the host. It coarse rate-limits by client IP
+# and keeps the app container off the host network entirely.
+# ---------------------------------------------------------------------------
+FROM nginx:1.27-alpine
+
+RUN rm -f /etc/nginx/conf.d/default.conf
+
+COPY nginx/nginx.conf /etc/nginx/nginx.conf
+COPY nginx/conf.d/ /etc/nginx/conf.d/
+
+EXPOSE 8035
