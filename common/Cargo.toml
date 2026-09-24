@@ -1,0 +1,12 @@
+[package]
+name = "ant-common"
+version = "0.1.0"
+edition = "2024"
+
+# Types shared by the server and the wasm frontend. Keep this crate free of
+# anything that can't build for wasm32 (sqlx, tokio, axum, ...).
+
+[dependencies]
+chrono = { version = "0.4.45", features = ["serde"] }
+serde = { version = "1.0.229", features = ["derive"] }
+uuid = { version = "1.26.1", features = ["serde"] }

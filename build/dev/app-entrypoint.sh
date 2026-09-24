@@ -11,11 +11,11 @@ echo "[entrypoint] building the frontend bundle..."
 (cd web && trunk build) || echo "[entrypoint] initial frontend build failed; trunk watch will retry"
 
 echo "[entrypoint] starting trunk watch..."
-(cd web && exec trunk watch) &
+(cd web && exec trunk watch --watch . --watch ../common) &
 TRUNK_PID=$!
 
 # Don't leave the watcher orphaned when the container stops.
 trap 'kill "$TRUNK_PID" 2>/dev/null || true' EXIT INT TERM
 
 echo "[entrypoint] starting the server (cargo watch)..."
-exec cargo watch -q -w src -w Cargo.toml -w migrations -x run
+exec cargo watch -q -w src -w common -w Cargo.toml -w build.rs -w migrations -x run

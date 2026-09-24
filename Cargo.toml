@@ -4,12 +4,13 @@ version = "0.1.0"
 edition = "2024"
 
 [workspace]
-members = ["web"]
+members = ["web", "common"]
 # The web crate only builds for wasm32, so keep it out of plain `cargo build`
 # at the root; Trunk builds it explicitly.
 default-members = ["."]
 
 [dependencies]
+ant-common = { path = "common" }
 axum = "0.8.9"
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0"

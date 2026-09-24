@@ -7,6 +7,7 @@ edition = "2024"
 # server's `cargo run`.
 
 [dependencies]
+ant-common = { path = "../common" }
 yew = { version = "0.23.0", features = ["csr"] }
 gloo-net = "0.5"
 serde = { version = "1.0.229", features = ["derive"] }

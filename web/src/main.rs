@@ -1,7 +1,6 @@
 //! ant — browser app. Mounted into <body> by Trunk's generated bootstrap.
 
 use serde::Deserialize;
-
 mod home;
 
 fn main() {

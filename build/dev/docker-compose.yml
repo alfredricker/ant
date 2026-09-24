@@ -60,8 +60,10 @@ services:
     volumes:
       - ../../src:/app/src
       - ../../web:/app/web
+      - ../../common:/app/common
       - ../../Cargo.toml:/app/Cargo.toml
       - ../../Cargo.lock:/app/Cargo.lock
+      - ../../build.rs:/app/build.rs
       - ../../migrations:/app/migrations
       - web_dist:/app/dist
       - cargo_target:/build-target

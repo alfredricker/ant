@@ -6,20 +6,15 @@
 
 use std::{env, time::Duration};
 
-use axum::{Json, Router, extract::State, http::StatusCode, routing::get};
-use serde::Serialize;
-use sqlx::{PgPool, postgres::PgPoolOptions};
+use ant::{api::health::health, state::AppState};
+use axum::{Router, routing::get};
+use sqlx::postgres::PgPoolOptions;
 use tower_http::{
     services::{ServeDir, ServeFile},
     trace::TraceLayer,
 };
 
 const DEFAULT_PORT: u16 = 6353;
-
-#[derive(Clone)]
-struct AppState {
-    db: PgPool,
-}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -41,7 +36,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .connect_lazy(&database_url)?;
 
     // Same SQL in every environment: extensions and schema live in ./migrations
-    // and are applied here rather than by a dev-only entrypoint hook.
     sqlx::migrate!("./migrations").run(&db).await?;
     tracing::info!("migrations applied");
 
@@ -80,44 +74,4 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 async fn shutdown_signal() {
     let _ = tokio::signal::ctrl_c().await;
     tracing::info!("shutting down");
-}
-
-#[derive(Serialize)]
-struct Health {
-    status: &'static str,
-    database: &'static str,
-    /// Version of the pgvector extension, once the database is reachable.
-    pgvector: Option<String>,
-}
-
-/// Liveness plus a real round trip to postgres, so the dev stack can tell the
-/// difference between "server up" and "server up, database missing".
-async fn health(State(state): State<AppState>) -> (StatusCode, Json<Health>) {
-    let pgvector = sqlx::query_scalar::<_, String>(
-        "SELECT extversion FROM pg_extension WHERE extname = 'vector'",
-    )
-    .fetch_optional(&state.db)
-    .await;
-
-    match pgvector {
-        Ok(version) => (
-            StatusCode::OK,
-            Json(Health {
-                status: "ok",
-                database: "connected",
-                pgvector: version,
-            }),
-        ),
-        Err(err) => {
-            tracing::warn!("health check could not reach the database: {err}");
-            (
-                StatusCode::SERVICE_UNAVAILABLE,
-                Json(Health {
-                    status: "degraded",
-                    database: "unavailable",
-                    pgvector: None,
-                }),
-            )
-        }
-    }
 }
