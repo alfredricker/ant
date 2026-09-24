@@ -49,6 +49,9 @@ services:
         condition: service_healthy
     env_file:
       - env/.env
+      # Local secrets (Google OAuth client); gitignored, optional.
+      - path: env/.env.local
+        required: false
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER:-ant}:${POSTGRES_PASSWORD:-ant}@db:5432/${POSTGRES_DB:-ant}
       APP_PORT: "6353"
@@ -87,13 +90,13 @@ services:
     depends_on:
       - app
     ports:
-      - "${NGINX_PORT:-8080}:8035"
+      - "${NGINX_PORT:-8080}:80"
     volumes:
       # Edit the conf and `./start.sh -r nginx` — no image rebuild needed.
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost/healthz >/dev/null || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/healthz >/dev/null || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5

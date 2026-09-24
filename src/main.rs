@@ -6,8 +6,9 @@
 
 use std::{env, time::Duration};
 
-use ant::{api::health::health, state::AppState};
-use axum::{Router, routing::get};
+use ant::{api, auth::google::Google, state::AppState};
+use axum::Router;
+use axum_extra::extract::cookie::Key;
 use sqlx::postgres::PgPoolOptions;
 use tower_http::{
     services::{ServeDir, ServeFile},
@@ -39,7 +40,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     sqlx::migrate!("./migrations").run(&db).await?;
     tracing::info!("migrations applied");
 
-    let state = AppState { db };
+    // Where browsers reach us (nginx in dev); Google redirects back here.
+    let public_url = env::var("PUBLIC_URL").unwrap_or_else(|_| "http://localhost:8080".to_string());
+
+    let state = AppState {
+        db,
+        google: Google::from_env(&public_url).await,
+        cookie_key: Key::generate(),
+        secure_cookies: public_url.starts_with("https://"),
+    };
 
     let dist_dir = env::var("ANT_DIST_DIR").unwrap_or_else(|_| "dist".to_string());
     let index_html = format!("{dist_dir}/index.html");
@@ -51,7 +60,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .not_found_service(ServeFile::new(&index_html));
 
     let app = Router::new()
-        .route("/api/health", get(health))
+        .nest("/api", api::router())
         .fallback_service(static_files)
         .layer(TraceLayer::new_for_http())
         .with_state(state);

@@ -1,43 +1,64 @@
 use ant_common::models::user::User;
-use sqlx::{
-    PgPool,
-    types::{
-        Uuid,
-        chrono::{DateTime, Utc},
-    },
-};
+use sqlx::{PgPool, types::Uuid};
 
-/// One `users` row, column for column. Fetched with `SELECT *`, so adding or
-/// dropping a column in a migration without updating this struct (or the
-/// reverse) fails to compile. Holds `password_hash`, so it never leaves the
-/// server; convert to `User` before responding.
-pub struct UserRow {
-    pub id: Uuid,
-    pub username: Option<String>,
-    pub email: String,
-    pub password_hash: String,
-    pub is_superuser: bool,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
-}
+// Every users column is safe to expose, so rows are read straight into the
+// shared User. `SELECT *` keeps the check two-way: a column without a field,
+// or a field without a column, fails to compile.
 
-// Exhaustive on purpose: a new field on the shared `User` is a compile error
-// here until it's mapped from the row.
-impl From<UserRow> for User {
-    fn from(row: UserRow) -> Self {
-        User {
-            id: row.id,
-            username: row.username,
-            email: row.email,
-            is_superuser: row.is_superuser,
-            created_at: row.created_at,
-            updated_at: row.updated_at,
-        }
-    }
-}
-
-pub async fn find_by_id(db: &PgPool, id: Uuid) -> sqlx::Result<Option<UserRow>> {
-    sqlx::query_as!(UserRow, "SELECT * FROM users WHERE id = $1", id)
+pub async fn find_by_id(db: &PgPool, id: Uuid) -> sqlx::Result<Option<User>> {
+    sqlx::query_as!(User, "SELECT * FROM users WHERE id = $1", id)
         .fetch_optional(db)
         .await
+}
+
+/// Resolves a sign-in from an external provider to a user, creating the user
+/// or linking the identity to an existing account on first use.
+///
+/// Linking goes by email, so callers must only pass an email the provider has
+/// verified; otherwise anyone could claim an account by typing its address.
+pub async fn find_or_create_from_identity(
+    db: &PgPool,
+    provider: &str,
+    subject: &str,
+    verified_email: &str,
+) -> sqlx::Result<User> {
+    let mut tx = db.begin().await?;
+
+    let existing = sqlx::query_as!(
+        User,
+        "SELECT u.* FROM user_identities i JOIN users u ON u.id = i.user_id
+         WHERE i.provider = $1 AND i.subject = $2",
+        provider,
+        subject,
+    )
+    .fetch_optional(&mut *tx)
+    .await?;
+    if let Some(user) = existing {
+        return Ok(user);
+    }
+
+    // The no-op update makes RETURNING hand back the existing row on a
+    // conflict, so a user who already exists by email gets linked, not duplicated.
+    let user = sqlx::query_as!(
+        User,
+        "INSERT INTO users (email) VALUES ($1)
+         ON CONFLICT ((lower(email))) DO UPDATE SET email = users.email
+         RETURNING *",
+        verified_email,
+    )
+    .fetch_one(&mut *tx)
+    .await?;
+
+    sqlx::query!(
+        "INSERT INTO user_identities (user_id, provider, subject) VALUES ($1, $2, $3)
+         ON CONFLICT DO NOTHING",
+        user.id,
+        provider,
+        subject,
+    )
+    .execute(&mut *tx)
+    .await?;
+
+    tx.commit().await?;
+    Ok(user)
 }

@@ -1,5 +1,6 @@
 //! The homepage: what ant is, what's on it, and whether the backend is alive.
 
+use ant_common::models::user::User;
 use gloo_net::http::Request;
 use yew::prelude::*;
 
@@ -62,6 +63,48 @@ pub fn Home() -> Html {
 
 #[component]
 fn Nav() -> Html {
+    // None while asking the API, then Some(None) when signed out.
+    let user = use_state(|| None::<Option<User>>);
+
+    {
+        let user = user.clone();
+        use_effect_with((), move |_| {
+            wasm_bindgen_futures::spawn_local(async move {
+                let me = match Request::get("/api/auth/me").send().await {
+                    Ok(response) if response.ok() => response.json::<User>().await.ok(),
+                    _ => None,
+                };
+                user.set(Some(me));
+            });
+            || ()
+        });
+    }
+
+    let sign_out = {
+        let user = user.clone();
+        Callback::from(move |_: MouseEvent| {
+            let user = user.clone();
+            wasm_bindgen_futures::spawn_local(async move {
+                let _ = Request::post("/api/auth/logout").send().await;
+                user.set(Some(None));
+            });
+        })
+    };
+
+    let account = match &*user {
+        None => html! {},
+        Some(Some(user)) => html! {
+            <>
+                <span class="nav-user">{ user.display_name() }</span>
+                <button class="button button-ghost" onclick={sign_out}>{ "Sign out" }</button>
+            </>
+        },
+        // A plain link, not fetch: the browser has to follow the redirects to Google and back.
+        Some(None) => html! {
+            <a class="button button-ghost" href="/api/auth/google/login">{ "Sign in with Google" }</a>
+        },
+    };
+
     html! {
         <header class="nav">
             <a class="brand" href="/">
@@ -71,7 +114,7 @@ fn Nav() -> Html {
             <nav class="nav-links">
                 <a href="/browse">{ "Browse" }</a>
                 <a href="/post">{ "Post a project" }</a>
-                <a class="button button-ghost" href="/login">{ "Sign in" }</a>
+                { account }
             </nav>
         </header>
     }

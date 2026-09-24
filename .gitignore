@@ -23,6 +23,8 @@ target
 .env
 # dev env symlink (points at build/dev/env/.env.example)
 build/*/env/.env
+# local secrets (Google OAuth client etc.)
+build/*/env/.env.local
 
 # trunk build output
 dist/
