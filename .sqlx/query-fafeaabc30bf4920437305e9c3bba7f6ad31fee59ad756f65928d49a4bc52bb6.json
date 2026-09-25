@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM post_responses WHERE id = $1 AND responder_id = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "fafeaabc30bf4920437305e9c3bba7f6ad31fee59ad756f65928d49a4bc52bb6"
+}

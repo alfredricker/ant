@@ -1,0 +1,34 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE post_responses r SET status = 'accepted'\n         FROM posts p\n         WHERE r.id = $1 AND p.id = r.post_id\n         RETURNING r.post_id, r.responder_id, p.author_id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "post_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "responder_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "author_id",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "08ab4c74db610fd60a5a7bad2f287a2ce0d15c0dac39fa74b5c0c6a1b0504cb0"
+}

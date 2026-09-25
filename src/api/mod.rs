@@ -5,8 +5,18 @@
 //! user takes `user: CurrentUser` (401 otherwise) in the macro arguments.
 //! Extractors and bodies only compile in the server build, so they can use
 //! `crate::server` freely.
+//!
+//! Anything that can fail returns `Result<T, HttpError>`: Dioxus sends a
+//! plain `Result<T>`'s errors as 500 whatever they say, while an `HttpError`
+//! keeps its status on the wire and comes back out of the call in the
+//! browser. `or_not_found` and friends (`OrHttpError`) build them;
+//! `server::error::OrInternal` does it for database errors.
 
 use dioxus::prelude::*;
+
+pub mod conversations;
+pub mod posts;
+pub mod responses;
 
 use crate::models::{health::Health, user::User};
 

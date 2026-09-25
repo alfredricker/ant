@@ -1,0 +1,97 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT r.id, r.post_id, r.responder_id, u.username AS responder_username,\n                  r.message, r.attachment_url, r.status AS \"status: ResponseStatus\",\n                  r.created_at, r.updated_at\n           FROM post_responses r JOIN users u ON u.id = r.responder_id\n           WHERE ($1::uuid IS NULL OR r.id = $1)\n             AND ($2::uuid IS NULL OR r.post_id = $2)\n             AND ($3::uuid IS NULL OR r.responder_id = $3)\n             AND ($4::response_status IS NULL OR r.status = $4)\n             AND ($5::bool IS NULL OR (r.attachment_url IS NOT NULL) = $5)\n             AND ($6::text IS NULL OR r.search @@ websearch_to_tsquery('english', $6))\n           ORDER BY r.created_at DESC\n           LIMIT 500",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "post_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "responder_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 3,
+        "name": "responder_username",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "message",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "attachment_url",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "status: ResponseStatus",
+        "type_info": {
+          "Custom": {
+            "name": "response_status",
+            "kind": {
+              "Enum": [
+                "pending",
+                "accepted",
+                "declined"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 8,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        {
+          "Custom": {
+            "name": "response_status",
+            "kind": {
+              "Enum": [
+                "pending",
+                "accepted",
+                "declined"
+              ]
+            }
+          }
+        },
+        "Bool",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      false,
+      true,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "25ae03a32b8ecf53ff16da06e921545e9a9862cc31f9bb7e854bef6ed5f39b76"
+}

@@ -1,0 +1,154 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT p.id, p.author_id, u.username AS author_username,\n                  p.kind AS \"kind: PostKind\", p.status AS \"status: PostStatus\",\n                  p.title, p.body, p.looking_for, p.funded, p.image_url,\n                  (SELECT count(*) FROM post_likes l WHERE l.post_id = p.id) AS \"like_count!\",\n                  (SELECT count(*) FROM post_comments c WHERE c.post_id = p.id) AS \"comment_count!\",\n                  EXISTS (SELECT 1 FROM post_likes l WHERE l.post_id = p.id AND l.user_id = $1) AS \"liked!\",\n                  p.created_at, p.updated_at\n           FROM posts p JOIN users u ON u.id = p.author_id\n           WHERE ($2::uuid IS NULL OR p.id = $2)\n             AND ($3::uuid IS NULL OR p.author_id = $3)\n             AND (p.status = 'open' OR $2 IS NOT NULL OR $3 IS NOT NULL)\n             AND ($4::post_kind IS NULL OR p.kind = $4)\n             AND ($5::text IS NULL OR p.search @@ websearch_to_tsquery('english', $5))\n             AND ($6::timestamptz IS NULL OR p.created_at < $6)\n           ORDER BY p.created_at DESC\n           LIMIT $7",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "author_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "author_username",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "kind: PostKind",
+        "type_info": {
+          "Custom": {
+            "name": "post_kind",
+            "kind": {
+              "Enum": [
+                "passion",
+                "school",
+                "art",
+                "music",
+                "game",
+                "startup",
+                "contract",
+                "other"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "status: PostStatus",
+        "type_info": {
+          "Custom": {
+            "name": "post_status",
+            "kind": {
+              "Enum": [
+                "open",
+                "closed"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "title",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "body",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
+        "name": "looking_for",
+        "type_info": "TextArray"
+      },
+      {
+        "ordinal": 8,
+        "name": "funded",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 9,
+        "name": "image_url",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 10,
+        "name": "like_count!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 11,
+        "name": "comment_count!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 12,
+        "name": "liked!",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 13,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 14,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        {
+          "Custom": {
+            "name": "post_kind",
+            "kind": {
+              "Enum": [
+                "passion",
+                "school",
+                "art",
+                "music",
+                "game",
+                "startup",
+                "contract",
+                "other"
+              ]
+            }
+          }
+        },
+        "Text",
+        "Timestamptz",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      null,
+      null,
+      null,
+      false,
+      false
+    ]
+  },
+  "hash": "4ef8e82ffe5f869aea27b9aee0a4c929a16e8817a6e22c06d3992ecb4bd5b6e9"
+}
