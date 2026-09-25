@@ -1,21 +1,17 @@
 #!/usr/bin/env bash
-# Dev entrypoint: one container, two watchers.
-#   trunk watch  -> rebuilds the yew bundle into /app/dist on frontend changes
-#   cargo watch  -> rebuilds and restarts the axum server on backend changes
-# The server serves /app/dist, so a frontend change is just a browser refresh.
+# Dev entrypoint: `dx serve` builds the server and the wasm bundle, runs the
+# server, and on a change hot-reloads rsx/CSS or rebuilds and restarts.
 set -euo pipefail
 
-mkdir -p "${ANT_DIST_DIR:-/app/dist}"
+# sqlx::query! checks SQL against the live schema at compile time (this
+# container sets DATABASE_URL), so the migrations must be applied before the
+# first build; the app's own startup migrate! can't help, since the binary
+# won't compile against an empty database. dx doesn't re-run this on change:
+# after adding a migration, `docker exec ant_dev_app sqlx migrate run`.
+echo "[entrypoint] applying migrations..."
+sqlx migrate run
 
-echo "[entrypoint] building the frontend bundle..."
-(cd web && trunk build) || echo "[entrypoint] initial frontend build failed; trunk watch will retry"
-
-echo "[entrypoint] starting trunk watch..."
-(cd web && exec trunk watch --watch . --watch ../common) &
-TRUNK_PID=$!
-
-# Don't leave the watcher orphaned when the container stops.
-trap 'kill "$TRUNK_PID" 2>/dev/null || true' EXIT INT TERM
-
-echo "[entrypoint] starting the server (cargo watch)..."
-exec cargo watch -q -w src -w common -w Cargo.toml -w build.rs -w migrations -x run
+# Listens where the app always has; nginx proxies to it, websockets (hot
+# reload) included.
+echo "[entrypoint] starting dx serve..."
+exec dx serve --web --addr 0.0.0.0 --port 6353 --interactive false --open false

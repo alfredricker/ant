@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 # ant :: dev stack
 #   nginx  -> published on the host, rate limits, proxies to app
-#   app    -> axum on 6353, container-network only
+#   app    -> `dx serve` (Dioxus fullstack on axum) on 6353, container-network only
 #   db     -> postgres + pgvector
 # The app image builds from the repo root (it needs Cargo.toml); db and nginx
 # build from this directory.
@@ -53,24 +53,26 @@ services:
       - path: env/.env.local
         required: false
     environment:
+      # Also what sqlx's query! macros check against at compile time; the
+      # committed .sqlx/ is only used where no database is reachable.
       DATABASE_URL: postgres://${POSTGRES_USER:-ant}:${POSTGRES_PASSWORD:-ant}@db:5432/${POSTGRES_DB:-ant}
-      APP_PORT: "6353"
-      ANT_DIST_DIR: /app/dist
       RUST_LOG: ${RUST_LOG:-debug}
     # No `ports:` on purpose — reachable only through nginx.
     expose:
       - "6353"
     volumes:
       - ../../src:/app/src
-      - ../../web:/app/web
-      - ../../common:/app/common
+      - ../../assets:/app/assets
       - ../../Cargo.toml:/app/Cargo.toml
       - ../../Cargo.lock:/app/Cargo.lock
       - ../../build.rs:/app/build.rs
       - ../../migrations:/app/migrations
-      - web_dist:/app/dist
+      # Writable, so `cargo sqlx prepare` in here updates the committed copy.
+      - ../../.sqlx:/app/.sqlx
       - cargo_target:/build-target
       - cargo_registry:/usr/local/cargo/registry
+      # dx's downloaded tools (wasm-bindgen), so they survive container restarts.
+      - dx_tools:/root/.local/share/.dx
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:6353/api/health >/dev/null || exit 1"]
       interval: 10s
@@ -90,7 +92,7 @@ services:
     depends_on:
       - app
     ports:
-      - "${NGINX_PORT:-8080}:80"
+      - "${NGINX_PORT:-8035}:80"
     volumes:
       # Edit the conf and `./start.sh -r nginx` — no image rebuild needed.
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
@@ -108,9 +110,9 @@ services:
 
 volumes:
   db_data:
-  web_dist:
   cargo_target:
   cargo_registry:
+  dx_tools:
 
 networks:
   ant_dev_default:

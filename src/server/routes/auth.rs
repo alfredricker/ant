@@ -1,8 +1,8 @@
-//! `/api/auth`: Google sign-in, sign-out, and who's signed in.
+//! `/api/auth`: Google sign-in and sign-out. Browser-redirect flows, so plain
+//! axum routes; "who's signed in" is the `current_user` server function.
 
-use ant_common::models::user::User;
 use axum::{
-    Json, Router,
+    Router,
     extract::{Query, State},
     http::StatusCode,
     response::Redirect,
@@ -18,10 +18,10 @@ use openidconnect::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    api::error::ApiError,
-    auth::session::{self, CurrentUser, SESSION_COOKIE},
+use crate::server::{
+    auth::session::{self, SESSION_COOKIE},
     db,
+    error::ApiError,
     state::AppState,
 };
 
@@ -35,7 +35,6 @@ pub fn router() -> Router<AppState> {
         .route("/google/login", get(google_login))
         .route("/google/callback", get(google_callback))
         .route("/logout", post(logout))
-        .route("/me", get(me))
 }
 
 #[derive(Serialize, Deserialize)]
@@ -170,16 +169,14 @@ async fn google_callback(
     Ok((flow_jar, session_jar, Redirect::to("/")))
 }
 
+/// Posted by a plain form, so sign-out works before the wasm has loaded;
+/// lands back on the homepage.
 async fn logout(
     State(state): State<AppState>,
     jar: CookieJar,
-) -> Result<(CookieJar, StatusCode), ApiError> {
+) -> Result<(CookieJar, Redirect), ApiError> {
     if let Some(cookie) = jar.get(SESSION_COOKIE) {
         db::sessions::delete(&state.db, &session::hash_token(cookie.value())).await?;
     }
-    Ok((jar.remove(session::clear_session_cookie()), StatusCode::NO_CONTENT))
-}
-
-async fn me(CurrentUser(user): CurrentUser) -> Json<User> {
-    Json(user)
+    Ok((jar.remove(session::clear_session_cookie()), Redirect::to("/")))
 }

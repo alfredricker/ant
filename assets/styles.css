@@ -60,6 +60,8 @@ h1, h2, h3 { line-height: 1.15; letter-spacing: -0.02em; margin: 0; }
 .nav-links a { color: var(--muted); font-size: 15px; }
 .nav-links a:hover { color: var(--text); }
 .nav-user { color: var(--text); font-size: 15px; }
+/* Sign-out is a plain form post; keep its button in the flex row. */
+.nav-form { display: contents; }
 
 /* ---------- buttons ---------- */
 .button {

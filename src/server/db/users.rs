@@ -1,4 +1,4 @@
-use ant_common::models::user::User;
+use crate::models::user::User;
 use sqlx::{PgPool, types::Uuid};
 
 // Every users column is safe to expose, so rows are read straight into the

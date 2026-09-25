@@ -21,12 +21,16 @@ impl ApiError {
     pub fn unauthorized() -> Self {
         Self::new(StatusCode::UNAUTHORIZED, "not signed in")
     }
+
+    pub fn internal() -> Self {
+        Self::new(StatusCode::INTERNAL_SERVER_ERROR, "internal error")
+    }
 }
 
 impl From<sqlx::Error> for ApiError {
     fn from(err: sqlx::Error) -> Self {
         tracing::error!("database error: {err}");
-        Self::new(StatusCode::INTERNAL_SERVER_ERROR, "internal error")
+        Self::internal()
     }
 }
 

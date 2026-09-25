@@ -83,7 +83,7 @@ else
 fi
 
 if [ -n "$SERVICE" ]; then
-    wait_healthy "$SERVICE" 300 || true
+    wait_healthy "$SERVICE" 30 || true
 else
     health_check_all
     print_endpoints

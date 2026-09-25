@@ -12,4 +12,4 @@ I'll start with a Postgres database with the pgvector extension to embed posts a
 I will be using Rust for the full stack.
 ### Routing
 For HTTP routing and request handling, I will be using axum https://github.com/tokio-rs/axum
-For a frontend framework, I am using yew, which is inspired by React.
+For the frontend I am using Dioxus fullstack https://dioxuslabs.com: server-rendered pages hydrated by wasm, with server functions in place of a hand-written client API.

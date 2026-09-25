@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1
 # ---------------------------------------------------------------------------
-# ant :: dev application container (axum server + yew/wasm frontend)
-# Dev-only: the source tree is bind-mounted and rebuilt on change, so this
-# image carries the toolchain, not the binary.
+# ant :: dev application container (Dioxus fullstack: axum server + wasm UI)
+# Dev-only: the source tree is bind-mounted and rebuilt on change by `dx serve`,
+# so this image carries the toolchain, not the binary.
 # ---------------------------------------------------------------------------
 FROM rust:1.90-bookworm
 
@@ -13,12 +13,22 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Frontend target + bundler, backend live-reload, migrations CLI.
 RUN rustup target add wasm32-unknown-unknown
-# cargo-binstall pulls prebuilt release binaries instead of compiling from source.
-RUN curl -fsSL "https://github.com/cargo-bins/cargo-binstall/releases/latest/download/cargo-binstall-$(uname -m)-unknown-linux-musl.tgz" \
-        | tar -xz -C /usr/local/cargo/bin
-RUN cargo binstall -y --locked cargo-watch trunk
+
+# The Dioxus CLI builds the server and the wasm bundle, serves them and
+# hot-reloads. Pinned to the dioxus crate in Cargo.toml; prebuilt release,
+# checked against its published sha256.
+ARG DX_VERSION=0.7.10
+RUN set -eux; \
+    asset="dx-$(uname -m)-unknown-linux-gnu"; \
+    base="https://github.com/DioxusLabs/dioxus/releases/download/v${DX_VERSION}"; \
+    cd /tmp; \
+    curl -fsSLO "$base/$asset.tar.gz"; \
+    curl -fsSLO "$base/$asset.sha256"; \
+    sha256sum -c --ignore-missing "$asset.sha256"; \
+    tar -xzf "$asset.tar.gz" -C /usr/local/cargo/bin dx; \
+    rm -f "$asset.tar.gz" "$asset.sha256"; \
+    dx --version
 
 # sqlx-cli has no prebuilt binary for these features, so compile it, but keep
 # the registry and build dir in BuildKit caches so a rebuild reuses them.
@@ -32,25 +42,24 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
 # share a target dir; docker-compose backs this with a named volume.
 ENV CARGO_TARGET_DIR=/build-target \
     CARGO_HOME=/usr/local/cargo \
-    ANT_DIST_DIR=/app/dist \
     RUST_BACKTRACE=1
 
 WORKDIR /app
 
 # Warm the dependency cache so the first `up` after a rebuild is not a cold build.
-# The stubs end up newer than the real sources mounted later, so cargo would
-# treat our own crates as fresh; dropping their fingerprints keeps only the
-# third-party deps cached.
+# Goes through `dx build` rather than cargo so the deps land in the same
+# profiles (server-dev, wasm-dev) that `dx serve` uses, and dx fetches its
+# wasm-bindgen into /root/.local/share/.dx now rather than on first start.
+# The stub is a real (empty) Dioxus app: an empty main gives wasm-bindgen
+# nothing to bind and fails the client half. It ends up newer than the real
+# sources mounted later, so cargo would treat our own crate as fresh; dropping
+# its fingerprints keeps only the third-party deps cached.
 COPY Cargo.toml Cargo.lock* build.rs ./
-COPY web/Cargo.toml ./web/
-COPY common/Cargo.toml ./common/
-RUN mkdir -p src web/src common/src \
-    && echo 'fn main() {}' > src/main.rs \
-    && echo 'fn main() {}' > web/src/main.rs \
-    && touch common/src/lib.rs \
-    && cargo build 2>/dev/null || true \
-    && cargo build -p ant-web --target wasm32-unknown-unknown 2>/dev/null || true \
-    && rm -rf src web/src common/src \
+RUN mkdir -p src migrations \
+    && echo 'use dioxus::prelude::*; fn app() -> Element { rsx! {} } fn main() { dioxus::launch(app) }' > src/main.rs \
+    && touch src/lib.rs \
+    && (dx build --web 2>/dev/null || true) \
+    && rm -rf src migrations \
     && rm -rf /build-target/*/.fingerprint/ant-* /build-target/*/*/.fingerprint/ant-*
 
 COPY build/dev/app-entrypoint.sh /usr/local/bin/app-entrypoint.sh

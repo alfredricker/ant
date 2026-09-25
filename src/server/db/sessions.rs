@@ -1,4 +1,4 @@
-use ant_common::models::user::User;
+use crate::models::user::User;
 use sqlx::{PgPool, types::Uuid};
 
 /// Stores a new session, and prunes expired ones while we're here.

@@ -117,14 +117,14 @@ wait_healthy() {
 
 health_check_all() {
     wait_healthy db 60      || true
-    wait_healthy app 300    || true   # first run compiles the whole dep tree
+    wait_healthy app 30     || true
     wait_healthy nginx 60   || true
 }
 
 print_endpoints() {
     local port
     port="$(grep -E '^NGINX_PORT=' "$ENV_FILE" 2>/dev/null | tail -1 | cut -d= -f2)"
-    port="${port:-8080}"
+    port="${port:-8035}"
     echo ""
     ok "  app (via nginx):  http://localhost:${port}"
     ok "  nginx health:     http://localhost:${port}/healthz"

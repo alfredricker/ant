@@ -1,0 +1,6 @@
+# Keeps host builds on the same Rust as the dev container (rust:1.90 in
+# build/dev/Dockerfile.app); bump both together.
+[toolchain]
+channel = "1.90.0"
+components = ["clippy", "rustfmt"]
+targets = ["wasm32-unknown-unknown"]

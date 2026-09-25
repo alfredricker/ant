@@ -4,7 +4,7 @@ use axum::extract::FromRef;
 use axum_extra::extract::cookie::Key;
 use sqlx::PgPool;
 
-use crate::auth::google::Google;
+use crate::server::auth::google::Google;
 
 #[derive(Clone)]
 pub struct AppState {
