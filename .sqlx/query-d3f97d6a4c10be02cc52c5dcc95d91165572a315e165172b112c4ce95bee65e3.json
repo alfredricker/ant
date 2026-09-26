@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO user_settings (user_id, theme) VALUES ($1, $2)\n         ON CONFLICT (user_id) DO UPDATE SET theme = EXCLUDED.theme",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        {
+          "Custom": {
+            "name": "theme",
+            "kind": {
+              "Enum": [
+                "system",
+                "light",
+                "dark"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "d3f97d6a4c10be02cc52c5dcc95d91165572a315e165172b112c4ce95bee65e3"
+}

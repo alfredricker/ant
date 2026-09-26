@@ -10,6 +10,10 @@ pub struct User {
     pub is_superuser: bool,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+    /// Set for emails Google vouched for; cleared when the email changes.
+    pub email_verified: bool,
+    /// The Google photo or an uploaded one; `None` shows a default insect.
+    pub avatar_url: Option<String>,
 }
 
 impl User {

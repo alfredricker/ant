@@ -73,7 +73,8 @@ async fn google_login(
     let client = google.client().await;
 
     let (pkce_challenge, pkce_verifier) = PkceCodeChallenge::new_random_sha256();
-    // The `openid` scope is added by the crate; `email` gets us the address.
+    // The `openid` scope is added by the crate; `email` gets us the address,
+    // `profile` the photo.
     let (auth_url, csrf, nonce) = client
         .authorize_url(
             CoreAuthenticationFlow::AuthorizationCode,
@@ -81,6 +82,7 @@ async fn google_login(
             Nonce::new_random,
         )
         .add_scope(Scope::new("email".to_string()))
+        .add_scope(Scope::new("profile".to_string()))
         .set_pkce_challenge(pkce_challenge)
         .url();
 
@@ -172,8 +174,15 @@ async fn google_callback(
         }
     };
     let subject = claims.subject().as_str().to_owned();
+    // Hotlinked from Google; only ever an https URL in an <img>.
+    let picture = claims
+        .picture()
+        .and_then(|picture| picture.get(None))
+        .map(|url| url.as_str())
+        .filter(|url| url.starts_with("https://"));
 
-    let user = db::users::find_or_create_from_identity(&state.db, "google", &subject, &email).await?;
+    let user =
+        db::users::find_or_create_from_identity(&state.db, "google", &subject, &email, picture).await?;
     let session_jar = start_session(&state, session_jar, user.id).await?;
     tracing::info!(user_id = %user.id, "signed in with Google");
 

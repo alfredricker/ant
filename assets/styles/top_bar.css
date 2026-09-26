@@ -29,16 +29,11 @@
 
 .nav-account { display: flex; align-items: center; gap: 10px; flex: none; }
 .nav-account .button { padding: 8px 16px; font-size: 14px; }
-/* Links to /account. Clipped, since it falls back to a long email. */
-.nav-user {
-  color: var(--text);
-  font-size: 15px;
-  max-width: 220px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.nav-user:hover { text-decoration: underline; text-underline-offset: 3px; }
+/* The avatar, linking to /account. */
+.nav-avatar { display: flex; border-radius: 50%; }
+.nav-avatar:hover .avatar-img,
+.nav-avatar:focus-visible .avatar-img { box-shadow: 0 0 0 2px var(--accent); }
+.nav-avatar:focus-visible { outline: none; }
 /* Sign-out is a plain form post; keep its button in the flex row. */
 .nav-form { display: contents; }
 
@@ -46,6 +41,5 @@
 @media (max-width: 640px) {
   .topbar { flex-wrap: wrap; }
   .nav-account { margin-left: auto; }
-  .nav-user { max-width: 28vw; }
   .search { order: 3; flex-basis: 100%; max-width: none; }
 }

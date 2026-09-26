@@ -8,7 +8,9 @@
   transition: transform 0.12s ease, background 0.12s ease;
 }
 .button:active { transform: translateY(1px); }
-.button-primary { background: var(--accent); color: #fff; }
+.button-primary { background: var(--accent); color: var(--on-accent); }
 .button-primary:hover { filter: brightness(1.07); }
 .button-ghost { border-color: var(--border); color: var(--text); background: var(--surface); }
 .button-ghost:hover { border-color: var(--muted); }
+button.button { font-family: inherit; cursor: pointer; }
+.button:disabled { opacity: 0.5; cursor: default; }

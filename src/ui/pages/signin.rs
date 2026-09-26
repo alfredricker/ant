@@ -28,7 +28,7 @@ pub fn SignIn(error: String) -> Element {
             // redirects to Google and back.
             a { class: "button button-ghost auth-link", href: "/api/auth/google/login", "Continue with Google" }
 
-            section { class: "auth-card",
+            section { class: "card",
                 h2 { "Sign in" }
                 form { class: "form", method: "post", action: "/api/auth/login",
                     EmailField { id: "signin-email" }
@@ -45,7 +45,7 @@ pub fn SignIn(error: String) -> Element {
                 }
             }
 
-            section { class: "auth-card",
+            section { class: "card",
                 h2 { "New here?" }
                 form { class: "form", method: "post", action: "/api/auth/register",
                     EmailField { id: "signup-email" }

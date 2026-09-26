@@ -35,3 +35,15 @@ pub async fn delete(db: &PgPool, token_hash: &[u8]) -> sqlx::Result<()> {
         .await?;
     Ok(())
 }
+
+/// Signs the user out everywhere except the session making the request.
+pub async fn delete_others(db: &PgPool, user_id: Uuid, keep_token_hash: &[u8]) -> sqlx::Result<u64> {
+    let result = sqlx::query!(
+        "DELETE FROM sessions WHERE user_id = $1 AND token_hash <> $2",
+        user_id,
+        keep_token_hash,
+    )
+    .execute(db)
+    .await?;
+    Ok(result.rows_affected())
+}

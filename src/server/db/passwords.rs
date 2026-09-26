@@ -48,3 +48,22 @@ pub async fn find_by_email(db: &PgPool, email: &str) -> sqlx::Result<Option<Cred
     .fetch_optional(db)
     .await
 }
+
+/// Sets or replaces the user's password.
+pub async fn set(db: &PgPool, user_id: Uuid, hash: &str) -> sqlx::Result<()> {
+    sqlx::query!(
+        "INSERT INTO user_passwords (user_id, hash) VALUES ($1, $2)
+         ON CONFLICT (user_id) DO UPDATE SET hash = EXCLUDED.hash",
+        user_id,
+        hash,
+    )
+    .execute(db)
+    .await?;
+    Ok(())
+}
+
+pub async fn find_by_user(db: &PgPool, user_id: Uuid) -> sqlx::Result<Option<String>> {
+    sqlx::query_scalar!("SELECT hash FROM user_passwords WHERE user_id = $1", user_id)
+        .fetch_optional(db)
+        .await
+}

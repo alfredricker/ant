@@ -32,6 +32,16 @@
         "ordinal": 5,
         "name": "updated_at",
         "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 6,
+        "name": "email_verified",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 7,
+        "name": "avatar_url",
+        "type_info": "Text"
       }
     ],
     "parameters": {
@@ -45,7 +55,9 @@
       false,
       false,
       false,
-      false
+      false,
+      false,
+      true
     ]
   },
   "hash": "f7f632eedac17f21821c29682ea124e4fd7ad2f1006b8174110d737b6b6cd150"

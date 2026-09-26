@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT u.* FROM sessions s JOIN users u ON u.id = s.user_id\n         WHERE s.token_hash = $1 AND s.expires_at > now()",
+  "query": "UPDATE users SET avatar_url = $2 WHERE id = $1 RETURNING *",
   "describe": {
     "columns": [
       {
@@ -46,7 +46,8 @@
     ],
     "parameters": {
       "Left": [
-        "Bytea"
+        "Uuid",
+        "Text"
       ]
     },
     "nullable": [
@@ -60,5 +61,5 @@
       true
     ]
   },
-  "hash": "e07ee92169db4a128a6b415f7d3cccf47022f7859d8370e986d0d45f77e55cff"
+  "hash": "ed96d4d0d7f51164187c9c1f48b3e46c80f8ed39f2c50332d4ea2a557d1f6fd2"
 }

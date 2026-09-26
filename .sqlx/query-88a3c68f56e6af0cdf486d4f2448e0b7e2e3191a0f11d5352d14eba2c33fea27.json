@@ -1,0 +1,33 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT theme AS \"theme: Theme\" FROM user_settings WHERE user_id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "theme: Theme",
+        "type_info": {
+          "Custom": {
+            "name": "theme",
+            "kind": {
+              "Enum": [
+                "system",
+                "light",
+                "dark"
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "88a3c68f56e6af0cdf486d4f2448e0b7e2e3191a0f11d5352d14eba2c33fea27"
+}

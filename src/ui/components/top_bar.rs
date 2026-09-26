@@ -4,7 +4,11 @@ use dioxus::prelude::*;
 
 use crate::{
     api,
-    ui::{Route, components::Brand, pages::FeedQuery},
+    ui::{
+        Route,
+        components::{Avatar, Brand},
+        pages::FeedQuery,
+    },
 };
 
 #[component]
@@ -63,7 +67,13 @@ fn AccountMenu() -> Element {
     let account = match &*user.read() {
         None => rsx! {},
         Some(Ok(Some(user))) => rsx! {
-            Link { class: "nav-user", to: Route::Account {}, title: "Your account", "{user.display_name()}" }
+            Link {
+                class: "nav-avatar",
+                to: Route::Account { notice: String::new() },
+                title: "Your account",
+                "aria-label": "Your account ({user.display_name()})",
+                Avatar { user_id: user.id, url: user.avatar_url.clone(), size: 36 }
+            }
             // A form, not a fetch: works before the wasm loads, and the
             // server's redirect home refreshes everything that depends on it.
             form { class: "nav-form", method: "post", action: "/api/auth/logout",

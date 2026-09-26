@@ -1,0 +1,83 @@
+/* The account page: a column of cards, one per section. */
+.account-page {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 40px 0 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.account-page > .brand { align-self: center; }
+.account-page > h1 { font-size: clamp(26px, 5vw, 32px); }
+.account-back { align-self: center; }
+.account-signed-out { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.account-signed-out p { margin: 0; }
+
+.account-divider { border: 0; border-top: 1px solid var(--border); margin: 20px 0; }
+.account-methods { margin: -4px 0 16px; }
+.account-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+/* Photo next to its upload form; stacked on narrow screens. */
+.account-photo { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+.account-photo-actions { flex: 1; min-width: 220px; }
+.account-photo-form { display: flex; flex-direction: column; gap: 8px; }
+.account-photo-form label { font-size: 14px; font-weight: 550; }
+.account-photo-form input[type="file"] { font: inherit; font-size: 14px; color: var(--muted); max-width: 100%; }
+.account-photo-form input[type="file"]::file-selector-button {
+  font: inherit;
+  margin-right: 10px;
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+.account-photo-form .form-hint { margin: 0; }
+.account-photo + .form-error,
+.account-photo + .form-saved { margin-top: 12px; }
+
+/* Theme picker: three cards, each with a tiny preview page. */
+.theme-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.theme-options legend { padding: 0; margin: 0 0 8px; }
+.theme-option {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.theme-option:hover { border-color: var(--muted); }
+.theme-option:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+.theme-option:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* Hidden but still focusable and announced; the card is the control. */
+.theme-option input { position: absolute; opacity: 0; pointer-events: none; }
+
+/* Each half pins a scheme with data-scheme (see base.css), so the previews
+   use the site's own tokens and can't drift from them. */
+.theme-swatch { display: flex; height: 52px; border-radius: 8px; overflow: hidden; box-shadow: 0 0 0 1px var(--border); }
+.theme-swatch-half {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  background: var(--bg);
+}
+.theme-swatch-bar { height: 8px; border-radius: 4px; background: var(--surface); box-shadow: 0 0 0 1px var(--border); }
+.theme-swatch-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--accent); }
+
+@media (max-width: 420px) {
+  .theme-options { grid-template-columns: 1fr; }
+}

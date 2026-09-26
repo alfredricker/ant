@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM user_identities WHERE user_id = $1 AND (provider, subject) <> ($2, $3)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "a7ca48b3616721398d19cf617054d34238cdbce17d9d97bbb26d7fb3fa856744"
+}

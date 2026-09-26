@@ -1,0 +1,9 @@
+/* Round user photos; the size comes from the img's width/height. */
+.avatar-img {
+  display: block;
+  flex: none;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--surface);
+  box-shadow: 0 0 0 1px var(--border);
+}

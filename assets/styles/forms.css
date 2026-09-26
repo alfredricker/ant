@@ -11,8 +11,7 @@
   margin-bottom: 8px;
 }
 .form input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
-.form .button { margin-top: 4px; cursor: pointer; }
-.form .button:disabled { opacity: 0.5; cursor: default; }
+.form .button { margin-top: 4px; }
 
 .form-hint { margin: -6px 0 8px; color: var(--muted); font-size: 13px; }
 .form-saved { margin: 0; color: var(--ok); font-size: 14px; }

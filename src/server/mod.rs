@@ -1,5 +1,6 @@
 //! Server-only code: never compiled into the wasm bundle.
 pub mod auth;
+pub mod avatar;
 pub mod db;
 pub mod error;
 pub mod routes;
