@@ -11,6 +11,15 @@ set -euo pipefail
 echo "[entrypoint] applying migrations..."
 sqlx migrate run
 
+# Example data (build/dev/seed.sql, mounted in by the compose file). It skips
+# rows that already exist, so it runs on every start. A seed that has fallen
+# behind the schema shouldn't keep the app down, so failures only warn.
+if [ -f /app/seed.sql ]; then
+    echo "[entrypoint] seeding example data..."
+    psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -q -f /app/seed.sql \
+        || echo "[entrypoint] WARNING: seed.sql failed; starting without it"
+fi
+
 # Listens where the app always has; nginx proxies to it, websockets (hot
 # reload) included.
 echo "[entrypoint] starting dx serve..."

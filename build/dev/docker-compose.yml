@@ -67,6 +67,8 @@ services:
       - ../../Cargo.lock:/app/Cargo.lock
       - ../../build.rs:/app/build.rs
       - ../../migrations:/app/migrations
+      # Dev example data, run by the entrypoint after migrations.
+      - ./seed.sql:/app/seed.sql:ro
       # Writable, so `cargo sqlx prepare` in here updates the committed copy.
       - ../../.sqlx:/app/.sqlx
       - cargo_target:/build-target

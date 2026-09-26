@@ -18,5 +18,9 @@
   wasm. `src/models` (wire types), `src/api` (server functions) and `src/ui`
   compile into both; `src/server` is server-only and must stay behind
   `#[cfg(feature = "server")]`.
+- Dev example data lives in `build/dev/seed.sql`, not in `migrations/`
+  (which also run in prod). It's re-run on every dev start, so keep it
+  idempotent: fixed ids, `ON CONFLICT DO NOTHING`. Update it when a
+  migration changes a table it fills.
 - When a change needs a rebuild or restart to take effect (Dockerfile, compose
   file, entrypoint, env files), say so and leave it to the maintainer.

@@ -4,7 +4,9 @@
 # Dev-only: the source tree is bind-mounted and rebuilt on change by `dx serve`,
 # so this image carries the toolchain, not the binary.
 # ---------------------------------------------------------------------------
-FROM rust:1.90-bookworm
+# trixie, not bookworm: the prebuilt dx below links against glibc 2.39, and
+# bookworm ships 2.36.
+FROM rust:1.90-trixie
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         pkg-config \

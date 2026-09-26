@@ -4,7 +4,7 @@
 -- Enum values mirror the Rust enums in src/models (serde and sqlx both use
 -- the lowercase names). Adding a value is `ALTER TYPE ... ADD VALUE`.
 
-CREATE TYPE post_kind AS ENUM ('passion', 'school', 'art', 'music', 'game', 'startup', 'contract', 'other');
+CREATE TYPE post_kind AS ENUM ('passion', 'school', 'art', 'game', 'startup', 'other');
 
 -- `closed`: the author found who they needed, or stopped looking. Closed
 -- posts stay readable but drop out of browsing and stop taking responses.
