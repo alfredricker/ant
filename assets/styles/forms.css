@@ -1,0 +1,28 @@
+/* Stacked label / input forms: sign-in, sign-up, account. */
+.form { display: flex; flex-direction: column; gap: 6px; }
+.form label { font-size: 14px; font-weight: 550; }
+.form input {
+  font: inherit;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.form input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.form .button { margin-top: 4px; cursor: pointer; }
+.form .button:disabled { opacity: 0.5; cursor: default; }
+
+.form-hint { margin: -6px 0 8px; color: var(--muted); font-size: 13px; }
+.form-saved { margin: 0; color: var(--ok); font-size: 14px; }
+/* Also used on its own, above a page's forms. */
+.form-error {
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px solid var(--down);
+  border-radius: var(--radius);
+  color: var(--down);
+  font-size: 15px;
+}
+.form .form-error { margin-bottom: 4px; }

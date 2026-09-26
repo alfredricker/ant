@@ -21,7 +21,10 @@ use serde::{Deserialize, Serialize};
 use sqlx::types::Uuid;
 
 use crate::{
-    models::auth::{self, AuthError, PASSWORD_MAX_CHARS},
+    models::{
+        auth::{self, AuthError, PASSWORD_MAX_CHARS},
+        user::User,
+    },
     server::{
         auth::{
             password,
@@ -174,7 +177,7 @@ async fn google_callback(
     let session_jar = start_session(&state, session_jar, user.id).await?;
     tracing::info!(user_id = %user.id, "signed in with Google");
 
-    Ok((flow_jar, session_jar, Redirect::to("/")))
+    Ok((flow_jar, session_jar, Redirect::to(landing(&user))))
 }
 
 /// A fresh session for `user_id`, replacing whatever cookie the browser had,
@@ -183,6 +186,12 @@ async fn start_session(state: &AppState, jar: CookieJar, user_id: Uuid) -> Resul
     let (token, token_hash) = session::new_token();
     db::sessions::create(&state.db, &token_hash, user_id, session::SESSION_DAYS).await?;
     Ok(jar.add(session::session_cookie(token, state.secure_cookies)))
+}
+
+/// Where a sign-in ends up: home, or the account page for users who haven't
+/// picked a username yet.
+fn landing(user: &User) -> &'static str {
+    if user.username.is_some() { "/" } else { "/account" }
 }
 
 /// Posted by the plain forms on `/signin`, so both work before the wasm has
@@ -215,7 +224,7 @@ async fn register(
     let jar = start_session(&state, jar, user.id).await?;
     tracing::info!(user_id = %user.id, "signed up with a password");
 
-    Ok((jar, Redirect::to("/")))
+    Ok((jar, Redirect::to(landing(&user))))
 }
 
 async fn login(

@@ -1,0 +1,8 @@
+/* The narrow, centered pages: sign-in and account. */
+.auth { max-width: 400px; margin: 0 auto; padding: 48px 0 64px; display: flex; flex-direction: column; gap: 20px; }
+.auth .brand { align-self: center; margin-bottom: 8px; }
+.auth-link { text-align: center; }
+.auth-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+.auth-card h2 { font-size: 19px; margin-bottom: 12px; }
+
+.account-email { margin: -6px 0 12px; overflow-wrap: anywhere; }

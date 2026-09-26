@@ -1,0 +1,33 @@
+.footer {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 24px 0 40px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+  color: var(--muted);
+  font-size: 14px;
+}
+.footer a:hover { color: var(--text); }
+
+/* Backend status pill. */
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+.status .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.status-ok .dot { background: var(--ok); }
+.status-down .dot { background: var(--down); }
+.status-pending .dot { animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: 0.25; } }

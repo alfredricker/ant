@@ -1,0 +1,14 @@
+.button {
+  display: inline-block;
+  padding: 11px 20px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 550;
+  border: 1px solid transparent;
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+.button:active { transform: translateY(1px); }
+.button-primary { background: var(--accent); color: #fff; }
+.button-primary:hover { filter: brightness(1.07); }
+.button-ghost { border-color: var(--border); color: var(--text); background: var(--surface); }
+.button-ghost:hover { border-color: var(--muted); }

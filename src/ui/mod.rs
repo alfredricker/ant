@@ -2,18 +2,33 @@
 
 use dioxus::prelude::*;
 
-mod feed;
-mod signin;
+mod components;
+mod pages;
 
-use feed::{Feed, FeedQuery};
-use signin::SignIn;
+use pages::{Account, Feed, FeedQuery, NotFound, SignIn};
 
-const STYLES: Asset = asset!("/assets/styles.css");
+/// Every stylesheet, loaded once for the whole app rather than by the page
+/// that uses it, so client-side navigation never shows a page unstyled.
+/// Order matters only for `base.css`, which defines the color tokens.
+const STYLESHEETS: &[Asset] = &[
+    asset!("/assets/styles/base.css"),
+    asset!("/assets/styles/buttons.css"),
+    asset!("/assets/styles/forms.css"),
+    asset!("/assets/styles/brand.css"),
+    asset!("/assets/styles/top_bar.css"),
+    asset!("/assets/styles/footer.css"),
+    asset!("/assets/styles/post_card.css"),
+    asset!("/assets/styles/feed.css"),
+    asset!("/assets/styles/auth.css"),
+    asset!("/assets/styles/not_found.css"),
+];
 
 #[derive(Clone, Debug, PartialEq, Routable)]
 enum Route {
     #[route("/?:..query")]
     Feed { query: FeedQuery },
+    #[route("/account")]
+    Account {},
     #[route("/signin?:error")]
     SignIn { error: String },
     #[route("/:..segments")]
@@ -28,19 +43,9 @@ pub fn App() -> Element {
             name: "description",
             content: "SandHouse brings together people with the same ambitions, whether that's a trip, a startup, a research project or something else, so they can go after it together.",
         }
-        document::Stylesheet { href: STYLES }
-        Router::<Route> {}
-    }
-}
-
-#[component]
-fn NotFound(segments: Vec<String>) -> Element {
-    let path = segments.join("/");
-    rsx! {
-        main { class: "not-found",
-            h1 { "Nothing here yet." }
-            p { class: "feed-note", "/{path} doesn't exist (yet)." }
-            Link { class: "button button-primary", to: Route::Feed { query: FeedQuery::default() }, "Back to the feed" }
+        for href in STYLESHEETS {
+            document::Stylesheet { href: *href }
         }
+        Router::<Route> {}
     }
 }

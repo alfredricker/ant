@@ -6,9 +6,10 @@
 
 use dioxus::prelude::*;
 
-use super::Route;
-use crate::models::auth::{AuthError, EMAIL_MAX_CHARS, PASSWORD_MAX_CHARS, PASSWORD_MIN_CHARS};
-use super::feed::FeedQuery;
+use crate::{
+    models::auth::{AuthError, EMAIL_MAX_CHARS, PASSWORD_MAX_CHARS, PASSWORD_MIN_CHARS},
+    ui::components::Brand,
+};
 
 #[component]
 pub fn SignIn(error: String) -> Element {
@@ -18,21 +19,18 @@ pub fn SignIn(error: String) -> Element {
     rsx! {
         document::Title { "Sign in · SandHouse" }
         main { class: "auth",
-            Link { class: "brand", to: Route::Feed { query: FeedQuery::default() },
-                span { class: "brand-mark", "🐜" }
-                span { class: "brand-name", "SandHouse" }
-            }
+            Brand {}
             if let Some(error) = error {
-                p { class: "auth-error", role: "alert", "{error.message()}" }
+                p { class: "form-error", role: "alert", "{error.message()}" }
             }
 
             // A plain link, not the router: the browser has to follow the
             // redirects to Google and back.
-            a { class: "button button-ghost auth-google", href: "/api/auth/google/login", "Continue with Google" }
+            a { class: "button button-ghost auth-link", href: "/api/auth/google/login", "Continue with Google" }
 
             section { class: "auth-card",
                 h2 { "Sign in" }
-                form { class: "auth-form", method: "post", action: "/api/auth/login",
+                form { class: "form", method: "post", action: "/api/auth/login",
                     EmailField { id: "signin-email" }
                     label { r#for: "signin-password", "Password" }
                     input {
@@ -49,7 +47,7 @@ pub fn SignIn(error: String) -> Element {
 
             section { class: "auth-card",
                 h2 { "New here?" }
-                form { class: "auth-form", method: "post", action: "/api/auth/register",
+                form { class: "form", method: "post", action: "/api/auth/register",
                     EmailField { id: "signup-email" }
                     label { r#for: "signup-password", "Password" }
                     input {
@@ -62,7 +60,7 @@ pub fn SignIn(error: String) -> Element {
                         "aria-describedby": "signup-password-hint",
                         required: true,
                     }
-                    p { id: "signup-password-hint", class: "auth-hint",
+                    p { id: "signup-password-hint", class: "form-hint",
                         "At least {PASSWORD_MIN_CHARS} characters. A few random words work well."
                     }
                     button { class: "button button-primary", r#type: "submit", "Create account" }

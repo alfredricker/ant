@@ -1,0 +1,38 @@
+.feed { max-width: 680px; margin: 0 auto; padding: 20px 0 48px; }
+
+.filters { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; }
+/* One scrolling row of chips rather than a wall of them. */
+.chips {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  list-style: none;
+  margin: 0;
+  padding: 2px 0;
+}
+.chips::-webkit-scrollbar { display: none; }
+.chip {
+  display: inline-block;
+  white-space: nowrap;
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 14px;
+}
+.chip:hover { color: var(--text); border-color: var(--muted); }
+.chip-active, .chip-active:hover { background: var(--text); border-color: var(--text); color: var(--bg); }
+
+.posts { display: flex; flex-direction: column; gap: 14px; }
+
+/* feed-note / feed-error are also borrowed by the account and 404 pages. */
+.feed-note { color: var(--muted); text-align: center; margin: 32px 0; }
+.feed-error { color: var(--down); }
+.feed-empty { text-align: center; padding: 48px 0; color: var(--muted); }
+.feed-empty a { color: var(--accent); font-weight: 550; }
+.feed-more { display: block; margin: 20px auto 0; }
+.feed-more:disabled { opacity: 0.6; }

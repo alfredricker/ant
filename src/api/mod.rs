@@ -14,6 +14,7 @@
 
 use dioxus::prelude::*;
 
+pub mod account;
 pub mod conversations;
 pub mod posts;
 pub mod responses;

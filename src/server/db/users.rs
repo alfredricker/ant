@@ -83,3 +83,20 @@ pub async fn find_or_create_from_identity(
     tx.commit().await?;
     Ok(user)
 }
+
+/// Sets the user's username. `None` if someone else has it, in any case.
+pub async fn set_username(db: &PgPool, id: Uuid, username: &str) -> sqlx::Result<Option<User>> {
+    let result = sqlx::query_as!(
+        User,
+        "UPDATE users SET username = $2 WHERE id = $1 RETURNING *",
+        id,
+        username,
+    )
+    .fetch_one(db)
+    .await;
+
+    match result {
+        Err(sqlx::Error::Database(err)) if err.constraint() == Some("users_username_key") => Ok(None),
+        other => other.map(Some),
+    }
+}

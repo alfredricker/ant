@@ -1,0 +1,2 @@
+.not-found { max-width: 680px; margin: 0 auto; padding: 96px 0; text-align: center; }
+.not-found h1 { font-size: clamp(28px, 5vw, 40px); }
