@@ -20,16 +20,19 @@ use axum::Extension;
 pub const PAGE_SIZE: i64 = 20;
 
 /// Browse open posts, newest first, or one author's posts (closed included).
-/// For the next page, pass the last post's `created_at` as `before`.
-#[get("/api/posts?kind&text&author&before", user: MaybeUser, state: Extension<AppState>)]
+/// `funded: Some(true)` keeps only posts with money behind them. For the next
+/// page, pass the last post's `created_at` as `before`.
+#[get("/api/posts?kind&funded&text&author&before", user: MaybeUser, state: Extension<AppState>)]
 pub async fn list_posts(
     kind: Option<PostKind>,
+    funded: Option<bool>,
     text: Option<String>,
     author: Option<Uuid>,
     before: Option<DateTime<Utc>>,
 ) -> Result<Vec<Post>, HttpError> {
     let filter = PostFilter {
         kind,
+        funded,
         text: text.filter(|t| !t.trim().is_empty()),
         author,
         before,

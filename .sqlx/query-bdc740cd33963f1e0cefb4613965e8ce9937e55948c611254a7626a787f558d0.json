@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT p.id, p.author_id, u.username AS author_username,\n                  p.kind AS \"kind: PostKind\", p.status AS \"status: PostStatus\",\n                  p.title, p.body, p.looking_for, p.funded, p.image_url,\n                  (SELECT count(*) FROM post_likes l WHERE l.post_id = p.id) AS \"like_count!\",\n                  (SELECT count(*) FROM post_comments c WHERE c.post_id = p.id) AS \"comment_count!\",\n                  EXISTS (SELECT 1 FROM post_likes l WHERE l.post_id = p.id AND l.user_id = $1) AS \"liked!\",\n                  p.created_at, p.updated_at\n           FROM posts p JOIN users u ON u.id = p.author_id\n           WHERE ($2::uuid IS NULL OR p.id = $2)\n             AND ($3::uuid IS NULL OR p.author_id = $3)\n             AND (p.status = 'open' OR $2 IS NOT NULL OR $3 IS NOT NULL)\n             AND ($4::post_kind IS NULL OR p.kind = $4)\n             AND ($5::text IS NULL OR p.search @@ websearch_to_tsquery('english', $5))\n             AND ($6::timestamptz IS NULL OR p.created_at < $6)\n           ORDER BY p.created_at DESC\n           LIMIT $7",
+  "query": "SELECT p.id, p.author_id, u.username AS author_username,\n                  p.kind AS \"kind: PostKind\", p.status AS \"status: PostStatus\",\n                  p.title, p.body, p.looking_for, p.funded, p.image_url,\n                  (SELECT count(*) FROM post_likes l WHERE l.post_id = p.id) AS \"like_count!\",\n                  (SELECT count(*) FROM post_comments c WHERE c.post_id = p.id) AS \"comment_count!\",\n                  EXISTS (SELECT 1 FROM post_likes l WHERE l.post_id = p.id AND l.user_id = $1) AS \"liked!\",\n                  p.created_at, p.updated_at\n           FROM posts p JOIN users u ON u.id = p.author_id\n           WHERE ($2::uuid IS NULL OR p.id = $2)\n             AND ($3::uuid IS NULL OR p.author_id = $3)\n             AND (p.status = 'open' OR $2 IS NOT NULL OR $3 IS NOT NULL)\n             AND ($4::post_kind IS NULL OR p.kind = $4)\n             AND ($5::text IS NULL OR p.search @@ websearch_to_tsquery('english', $5))\n             AND ($6::timestamptz IS NULL OR p.created_at < $6)\n             AND ($7::bool IS NULL OR p.funded = $7)\n           ORDER BY p.created_at DESC\n           LIMIT $8",
   "describe": {
     "columns": [
       {
@@ -28,9 +28,11 @@
               "Enum": [
                 "passion",
                 "school",
+                "research",
                 "art",
                 "music",
                 "game",
+                "travel",
                 "startup",
                 "contract",
                 "other"
@@ -117,9 +119,11 @@
               "Enum": [
                 "passion",
                 "school",
+                "research",
                 "art",
                 "music",
                 "game",
+                "travel",
                 "startup",
                 "contract",
                 "other"
@@ -129,6 +133,7 @@
         },
         "Text",
         "Timestamptz",
+        "Bool",
         "Int8"
       ]
     },
@@ -150,5 +155,5 @@
       false
     ]
   },
-  "hash": "4ef8e82ffe5f869aea27b9aee0a4c929a16e8817a6e22c06d3992ecb4bd5b6e9"
+  "hash": "bdc740cd33963f1e0cefb4613965e8ce9937e55948c611254a7626a787f558d0"
 }

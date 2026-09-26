@@ -14,21 +14,25 @@ use super::user::PublicUser;
 pub enum PostKind {
     Passion,
     School,
+    Research,
     Art,
     Music,
     Game,
+    Travel,
     Startup,
     Contract,
     Other,
 }
 
 impl PostKind {
-    pub const ALL: [PostKind; 8] = [
+    pub const ALL: [PostKind; 10] = [
         PostKind::Passion,
         PostKind::School,
+        PostKind::Research,
         PostKind::Art,
         PostKind::Music,
         PostKind::Game,
+        PostKind::Travel,
         PostKind::Startup,
         PostKind::Contract,
         PostKind::Other,
@@ -38,13 +42,36 @@ impl PostKind {
         match self {
             PostKind::Passion => "Passion project",
             PostKind::School => "School project",
+            PostKind::Research => "Research",
             PostKind::Art => "Art",
             PostKind::Music => "Music",
             PostKind::Game => "Game",
+            PostKind::Travel => "Travel",
             PostKind::Startup => "Startup",
             PostKind::Contract => "Contract position",
             PostKind::Other => "Other",
         }
+    }
+
+    /// The lowercase name the database and the wire use, which also goes in
+    /// URLs (`/?kind=travel`).
+    pub fn slug(self) -> &'static str {
+        match self {
+            PostKind::Passion => "passion",
+            PostKind::School => "school",
+            PostKind::Research => "research",
+            PostKind::Art => "art",
+            PostKind::Music => "music",
+            PostKind::Game => "game",
+            PostKind::Travel => "travel",
+            PostKind::Startup => "startup",
+            PostKind::Contract => "contract",
+            PostKind::Other => "other",
+        }
+    }
+
+    pub fn from_slug(slug: &str) -> Option<PostKind> {
+        PostKind::ALL.into_iter().find(|kind| kind.slug() == slug)
     }
 }
 

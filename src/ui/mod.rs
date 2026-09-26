@@ -2,16 +2,16 @@
 
 use dioxus::prelude::*;
 
-mod home;
+mod feed;
 
-use home::Home;
+use feed::{Feed, FeedQuery};
 
 const STYLES: Asset = asset!("/assets/styles.css");
 
 #[derive(Clone, Debug, PartialEq, Routable)]
 enum Route {
-    #[route("/")]
-    Home {},
+    #[route("/?:..query")]
+    Feed { query: FeedQuery },
     #[route("/:..segments")]
     NotFound { segments: Vec<String> },
 }
@@ -19,10 +19,10 @@ enum Route {
 #[component]
 pub fn App() -> Element {
     rsx! {
-        document::Title { "ant — find people to build with" }
+        document::Title { "ant: find people who want the same big thing" }
         document::Meta {
             name: "description",
-            content: "ant pairs people up on passion projects, school projects and anything else worth building together.",
+            content: "ant brings together people with the same ambitions, whether that's a trip, a startup, a research project or something else, so they can go after it together.",
         }
         document::Stylesheet { href: STYLES }
         Router::<Route> {}
@@ -33,14 +33,10 @@ pub fn App() -> Element {
 fn NotFound(segments: Vec<String>) -> Element {
     let path = segments.join("/");
     rsx! {
-        main {
-            section { class: "hero",
-                h1 { "Nothing here yet." }
-                p { class: "lede", "/{path} doesn't exist (yet)." }
-                div { class: "hero-actions",
-                    Link { class: "button button-primary", to: Route::Home {}, "Back home" }
-                }
-            }
+        main { class: "not-found",
+            h1 { "Nothing here yet." }
+            p { class: "feed-note", "/{path} doesn't exist (yet)." }
+            Link { class: "button button-primary", to: Route::Feed { query: FeedQuery::default() }, "Back to the feed" }
         }
     }
 }

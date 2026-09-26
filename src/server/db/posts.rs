@@ -11,6 +11,8 @@ use crate::models::{
 #[derive(Debug, Default)]
 pub struct PostFilter {
     pub kind: Option<PostKind>,
+    /// Only posts with (true) or without (false) money behind them.
+    pub funded: Option<bool>,
     /// Full-text search over title and description.
     pub text: Option<String>,
     /// One author's posts, closed ones included.
@@ -88,14 +90,16 @@ async fn select(
              AND ($4::post_kind IS NULL OR p.kind = $4)
              AND ($5::text IS NULL OR p.search @@ websearch_to_tsquery('english', $5))
              AND ($6::timestamptz IS NULL OR p.created_at < $6)
+             AND ($7::bool IS NULL OR p.funded = $7)
            ORDER BY p.created_at DESC
-           LIMIT $7"#,
+           LIMIT $8"#,
         viewer,
         id,
         filter.author,
         filter.kind as Option<PostKind>,
         filter.text,
         filter.before,
+        filter.funded,
         limit,
     )
     .fetch_all(db)

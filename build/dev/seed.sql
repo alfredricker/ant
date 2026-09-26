@@ -77,7 +77,21 @@ INSERT INTO posts (id, author_id, kind, status, title, body, looking_for, funded
      'Paid, fixed scope: finish the mobile companion app for the invoicing product (receipt capture and '
      'sync status). Designs are done; the API exists.',
      '{"Flutter","Mobile"}', true, NULL,
-     now() - interval '6 hours', now() - interval '6 hours')
+     now() - interval '6 hours', now() - interval '6 hours'),
+    ('5eed0001-0000-4000-8000-000000000008', '5eed0000-0000-4000-8000-000000000005', 'travel', 'open',
+     'Cycle the Danube, source to sea',
+     'Roughly 2,800 km over ten weeks next summer, camping most nights. I have done a couple of week-long '
+     'tours but never anything this long, and I would rather do it with someone who wants to plan the route '
+     'properly and keep a shared journal of it.',
+     '{"Bike touring","Route planning","Photography"}', false, 'https://picsum.photos/seed/ant-danube/1200/630',
+     now() - interval '4 hours', now() - interval '4 hours'),
+    ('5eed0001-0000-4000-8000-000000000009', '5eed0000-0000-4000-8000-000000000002', 'research', 'open',
+     'Open replication of a sleep and memory study',
+     'A widely cited result about naps and memory consolidation has never been replicated with a '
+     'preregistered design. I have drafted the protocol and have a lab willing to host it; I am looking for '
+     'a co-author with stats chops and someone to help recruit participants.',
+     '{"Statistics","Study design","Writing"}', false, NULL,
+     now() - interval '30 hours', now() - interval '30 hours')
 ON CONFLICT DO NOTHING;
 
 INSERT INTO post_comments (id, post_id, author_id, body, created_at, updated_at) VALUES
