@@ -1,4 +1,5 @@
-//! Passwordless sign-in: external identity providers plus server-side
-//! sessions. Google is the only provider so far.
+//! Sign-in: Google, or email and password, both ending in a server-side
+//! session.
 pub mod google;
+pub mod password;
 pub mod session;

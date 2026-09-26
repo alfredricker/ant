@@ -106,7 +106,7 @@ fn TopBar(query: FeedQuery) -> Element {
         header { class: "topbar",
             Link { class: "brand", to: Route::Feed { query: FeedQuery::default() },
                 span { class: "brand-mark", "🐜" }
-                span { class: "brand-name", "ant" }
+                span { class: "brand-name", "SandHouse" }
             }
             SearchBox { query }
             Account {}
@@ -166,10 +166,8 @@ fn Account() -> Element {
                 button { class: "button button-ghost", r#type: "submit", "Sign out" }
             }
         },
-        // A plain link, not the router: the browser has to follow the
-        // redirects to Google and back.
         Some(_) => rsx! {
-            a { class: "button button-ghost", href: "/api/auth/google/login", "Sign in" }
+            Link { class: "button button-ghost", to: Route::SignIn { error: String::new() }, "Sign in" }
         },
     };
 
@@ -386,7 +384,7 @@ fn BackendStatus() -> Element {
 fn Footer() -> Element {
     rsx! {
         footer { class: "footer",
-            span { "ant: find people who want the same big thing" }
+            span { "SandHouse: find people who want the same big thing" }
             // Plain link: a JSON endpoint, not a page the router knows.
             a { href: "/api/health", BackendStatus {} }
         }

@@ -1,4 +1,4 @@
-/* ant — feed styles. Light by default, dark when the OS asks for it. */
+/* SandHouse — feed styles. Light by default, dark when the OS asks for it. */
 
 :root {
   --bg: #fbfaf7;
@@ -239,3 +239,32 @@ h1, h2, h3 { line-height: 1.15; letter-spacing: -0.02em; margin: 0; }
   font-size: 14px;
 }
 .footer a:hover { color: var(--text); }
+
+/* ---------- sign in ---------- */
+.auth { max-width: 400px; margin: 0 auto; padding: 48px 0 64px; display: flex; flex-direction: column; gap: 20px; }
+.auth .brand { align-self: center; margin-bottom: 8px; }
+.auth-google { text-align: center; }
+.auth-error {
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px solid var(--down);
+  border-radius: var(--radius);
+  color: var(--down);
+  font-size: 15px;
+}
+.auth-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+.auth-card h2 { font-size: 19px; margin-bottom: 12px; }
+.auth-form { display: flex; flex-direction: column; gap: 6px; }
+.auth-form label { font-size: 14px; font-weight: 550; }
+.auth-form input {
+  font: inherit;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.auth-form input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.auth-form .button { margin-top: 4px; cursor: pointer; }
+.auth-hint { margin: -6px 0 8px; color: var(--muted); font-size: 13px; }

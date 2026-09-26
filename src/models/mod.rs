@@ -1,5 +1,6 @@
 //! Types that cross the wire between the server and the browser. Everything
 //! here compiles to wasm, so no sqlx, tokio or axum.
+pub mod auth;
 pub mod conversation;
 pub mod health;
 pub mod post;

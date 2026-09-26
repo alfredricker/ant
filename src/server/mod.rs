@@ -33,6 +33,8 @@ pub async fn state() -> anyhow::Result<AppState> {
     // Where browsers reach us (nginx in dev); Google redirects back here.
     let public_url = env::var("PUBLIC_URL").unwrap_or_else(|_| "http://localhost:8035".to_string());
 
+    auth::password::warm_up();
+
     Ok(AppState {
         db,
         google: Google::from_env(&public_url).await,

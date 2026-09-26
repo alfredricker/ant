@@ -18,6 +18,7 @@ web = ["dioxus/web"]
 server = [
     "dioxus/server",
     "dep:anyhow",
+    "dep:argon2",
     "dep:axum",
     "dep:axum-extra",
     "dep:base64",
@@ -27,6 +28,7 @@ server = [
     "dep:sha2",
     "dep:sqlx",
     "dep:time",
+    "dep:tokio",
     "dep:tower-http",
     "dep:tracing",
     "dep:tracing-subscriber",
@@ -41,6 +43,7 @@ uuid = { version = "1.26.1", features = ["serde"] }
 
 # Server only.
 anyhow = { version = "1.0", optional = true }
+argon2 = { version = "0.6.0", optional = true }
 axum = { version = "0.8.9", optional = true }
 axum-extra = { version = "0.12.6", features = ["cookie-private"], optional = true }
 base64 = { version = "0.23.1", optional = true }
@@ -58,6 +61,7 @@ sqlx = { version = "0.8.6", default-features = false, features = [
     "chrono",
 ], optional = true }
 time = { version = "0.3.55", optional = true }
+tokio = { version = "1.53", features = ["rt", "sync"], optional = true }
 tower-http = { version = "0.6", features = ["trace"], optional = true }
 tracing = { version = "0.1", optional = true }
 tracing-subscriber = { version = "0.3", features = ["env-filter"], optional = true }

@@ -4,6 +4,7 @@
 //! from postgres without a build error.
 pub mod comments;
 pub mod conversations;
+pub mod passwords;
 pub mod posts;
 pub mod responses;
 pub mod sessions;

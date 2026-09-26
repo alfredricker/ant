@@ -1,5 +1,5 @@
-# Ant
-Ant brings together two or more people who share a big goal, so they can go after it together: a long trip, a startup, a research project, a game, an album, anything worth doing with someone else.
+# SandHouse
+SandHouse brings together two or more people who share a big goal, so they can go after it together: a long trip, a startup, a research project, a game, an album, anything worth doing with someone else.
 
 It's a social site, not a SaaS product. There's no landing page: you arrive in a feed of what people want to do, with search and filters. Most posts are non-monetary, but posts can say they have funding behind them.
 

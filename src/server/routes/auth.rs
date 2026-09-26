@@ -1,8 +1,9 @@
-//! `/api/auth`: Google sign-in and sign-out. Browser-redirect flows, so plain
-//! axum routes; "who's signed in" is the `current_user` server function.
+//! `/api/auth`: Google sign-in, email + password sign-up and sign-in, and
+//! sign-out. Browser-redirect and plain-form flows, so plain axum routes;
+//! "who's signed in" is the `current_user` server function.
 
 use axum::{
-    Router,
+    Form, Router,
     extract::{Query, State},
     http::StatusCode,
     response::Redirect,
@@ -17,12 +18,19 @@ use openidconnect::{
     core::CoreAuthenticationFlow,
 };
 use serde::{Deserialize, Serialize};
+use sqlx::types::Uuid;
 
-use crate::server::{
-    auth::session::{self, SESSION_COOKIE},
-    db,
-    error::ApiError,
-    state::AppState,
+use crate::{
+    models::auth::{self, AuthError, PASSWORD_MAX_CHARS},
+    server::{
+        auth::{
+            password,
+            session::{self, SESSION_COOKIE},
+        },
+        db,
+        error::ApiError,
+        state::AppState,
+    },
 };
 
 /// Holds the CSRF state, nonce and PKCE verifier between the redirect to
@@ -34,6 +42,8 @@ pub fn router() -> Router<AppState> {
     Router::new()
         .route("/google/login", get(google_login))
         .route("/google/callback", get(google_callback))
+        .route("/register", post(register))
+        .route("/login", post(login))
         .route("/logout", post(logout))
 }
 
@@ -161,12 +171,76 @@ async fn google_callback(
     let subject = claims.subject().as_str().to_owned();
 
     let user = db::users::find_or_create_from_identity(&state.db, "google", &subject, &email).await?;
-    let (token, token_hash) = session::new_token();
-    db::sessions::create(&state.db, &token_hash, user.id, session::SESSION_DAYS).await?;
+    let session_jar = start_session(&state, session_jar, user.id).await?;
     tracing::info!(user_id = %user.id, "signed in with Google");
 
-    let session_jar = session_jar.add(session::session_cookie(token, state.secure_cookies));
     Ok((flow_jar, session_jar, Redirect::to("/")))
+}
+
+/// A fresh session for `user_id`, replacing whatever cookie the browser had,
+/// so a session planted before sign-in never becomes a signed-in one.
+async fn start_session(state: &AppState, jar: CookieJar, user_id: Uuid) -> Result<CookieJar, ApiError> {
+    let (token, token_hash) = session::new_token();
+    db::sessions::create(&state.db, &token_hash, user_id, session::SESSION_DAYS).await?;
+    Ok(jar.add(session::session_cookie(token, state.secure_cookies)))
+}
+
+/// Posted by the plain forms on `/signin`, so both work before the wasm has
+/// loaded.
+#[derive(Deserialize)]
+struct PasswordForm {
+    email: String,
+    password: String,
+}
+
+/// Back to the sign-in page with one of the fixed error messages.
+fn back_to_signin(err: AuthError) -> Redirect {
+    Redirect::to(&format!("/signin?error={}", err.slug()))
+}
+
+async fn register(
+    State(state): State<AppState>,
+    jar: CookieJar,
+    Form(form): Form<PasswordForm>,
+) -> Result<(CookieJar, Redirect), ApiError> {
+    let email = form.email.trim();
+    if let Err(err) = auth::check_email(email).and(auth::check_password(&form.password)) {
+        return Ok((jar, back_to_signin(err)));
+    }
+
+    let hash = password::hash(form.password).await?;
+    let Some(user) = db::passwords::create_user(&state.db, email, &hash).await? else {
+        return Ok((jar, back_to_signin(AuthError::EmailTaken)));
+    };
+    let jar = start_session(&state, jar, user.id).await?;
+    tracing::info!(user_id = %user.id, "signed up with a password");
+
+    Ok((jar, Redirect::to("/")))
+}
+
+async fn login(
+    State(state): State<AppState>,
+    jar: CookieJar,
+    Form(form): Form<PasswordForm>,
+) -> Result<(CookieJar, Redirect), ApiError> {
+    // No minimum here: that's a sign-up rule, and it may change. The maximum
+    // caps the hashing work an attempt can ask for.
+    if form.password.chars().count() > PASSWORD_MAX_CHARS {
+        return Ok((jar, back_to_signin(AuthError::Invalid)));
+    }
+
+    // Unknown emails and Google-only accounts still pay for a hash check (see
+    // `password::verify`), and all failures look alike.
+    let credentials = db::passwords::find_by_email(&state.db, form.email.trim()).await?;
+    let (user_id, hash) = credentials.map(|c| (c.user_id, c.hash)).unzip();
+    let matches = password::verify(form.password, hash).await?;
+    let (true, Some(user_id)) = (matches, user_id) else {
+        return Ok((jar, back_to_signin(AuthError::Invalid)));
+    };
+
+    let jar = start_session(&state, jar, user_id).await?;
+    tracing::info!(%user_id, "signed in with a password");
+    Ok((jar, Redirect::to("/")))
 }
 
 /// Posted by a plain form, so sign-out works before the wasm has loaded;

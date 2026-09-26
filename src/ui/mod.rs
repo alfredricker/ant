@@ -3,8 +3,10 @@
 use dioxus::prelude::*;
 
 mod feed;
+mod signin;
 
 use feed::{Feed, FeedQuery};
+use signin::SignIn;
 
 const STYLES: Asset = asset!("/assets/styles.css");
 
@@ -12,6 +14,8 @@ const STYLES: Asset = asset!("/assets/styles.css");
 enum Route {
     #[route("/?:..query")]
     Feed { query: FeedQuery },
+    #[route("/signin?:error")]
+    SignIn { error: String },
     #[route("/:..segments")]
     NotFound { segments: Vec<String> },
 }
@@ -19,10 +23,10 @@ enum Route {
 #[component]
 pub fn App() -> Element {
     rsx! {
-        document::Title { "ant: find people who want the same big thing" }
+        document::Title { "SandHouse: find people who want the same big thing" }
         document::Meta {
             name: "description",
-            content: "ant brings together people with the same ambitions, whether that's a trip, a startup, a research project or something else, so they can go after it together.",
+            content: "SandHouse brings together people with the same ambitions, whether that's a trip, a startup, a research project or something else, so they can go after it together.",
         }
         document::Stylesheet { href: STYLES }
         Router::<Route> {}

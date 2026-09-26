@@ -2,5 +2,5 @@
 # build/dev/Dockerfile.app); bump both together.
 [toolchain]
 channel = "1.90.0"
-components = ["clippy", "rustfmt"]
+components = ["clippy", "rustfmt", "rust-analyzer"]
 targets = ["wasm32-unknown-unknown"]
