@@ -1,0 +1,86 @@
+/* The new-post page: one card holding the composer. Laid out like the
+   account page; its signed-out card borrows .account-signed-out. */
+.compose-page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 40px 0 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.compose-page > .brand { align-self: center; }
+.compose-page > h1 { font-size: clamp(26px, 5vw, 32px); }
+.compose-back { align-self: center; }
+
+.compose-note { margin: 0 0 12px; font-size: 14px; color: var(--muted); }
+.compose-note a { color: var(--accent); font-weight: 550; }
+/* The picture's caption; a span, since its field isn't always an input. */
+.compose-label { font-size: 14px; font-weight: 550; }
+.compose-submit { align-self: flex-start; }
+
+/* Chips so far, then the box for the next tag, dressed as one field. */
+.tag-field {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  margin-bottom: 8px;
+}
+.tag-field:focus-within { outline: 2px solid var(--accent); outline-offset: 1px; }
+.tag-field .tags { display: contents; }
+.tag-field .tag { display: inline-flex; align-items: center; gap: 4px; padding-right: 4px; color: var(--text); background: var(--surface); }
+.form .tag-field input {
+  flex: 1;
+  min-width: 140px;
+  margin: 0;
+  padding: 3px 4px;
+  border: 0;
+  background: transparent;
+}
+.form .tag-field input:focus { outline: none; }
+.tag-remove {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+.tag-remove:hover { background: var(--border); color: var(--text); }
+
+.form input.compose-file { padding: 0; border: 0; background: transparent; font-size: 14px; color: var(--muted); max-width: 100%; }
+.compose-file::file-selector-button {
+  font: inherit;
+  margin-right: 10px;
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+.compose-file:disabled { opacity: 0.6; }
+/* The preview matches how the feed will crop it (see .post-image). */
+.compose-image { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+.compose-image img {
+  width: 100%;
+  aspect-ratio: 1200 / 630;
+  object-fit: cover;
+  border-radius: calc(var(--radius) - 4px);
+  border: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.form label.compose-check { display: flex; align-items: center; gap: 8px; margin-top: 4px; font-weight: 500; font-size: 15px; cursor: pointer; }
+.form .compose-check input { margin: 0; width: 18px; height: 18px; accent-color: var(--accent); }

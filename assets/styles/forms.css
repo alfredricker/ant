@@ -1,7 +1,9 @@
-/* Stacked label / input forms: sign-in, sign-up, account. */
+/* Stacked label / input forms: sign-in, sign-up, account, new post. */
 .form { display: flex; flex-direction: column; gap: 6px; }
 .form label { font-size: 14px; font-weight: 550; }
-.form input {
+.form input,
+.form textarea,
+.form select {
   font: inherit;
   padding: 9px 12px;
   border: 1px solid var(--border);
@@ -10,7 +12,10 @@
   color: var(--text);
   margin-bottom: 8px;
 }
-.form input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.form textarea { resize: vertical; line-height: 1.5; }
+.form input:focus,
+.form textarea:focus,
+.form select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 .form .button { margin-top: 4px; }
 
 .form-hint { margin: -6px 0 8px; color: var(--muted); font-size: 13px; }

@@ -6,19 +6,20 @@ use axum::{
     Router,
     body::Bytes,
     extract::{DefaultBodyLimit, Multipart, Path, State},
-    http::{HeaderValue, StatusCode, header},
-    response::{IntoResponse, Redirect, Response},
+    http::StatusCode,
+    response::{Redirect, Response},
     routing::{get, post},
 };
 use sqlx::types::Uuid;
 
 use crate::{
-    models::account::{AVATAR_MAX_BYTES, AvatarNotice},
+    models::account::{AVATAR_MAX_BYTES, AVATAR_SIZE, AvatarNotice},
     server::{
         auth::session::CurrentUser,
-        avatar::{self, AvatarError},
-        db,
+        db::{self, account::Avatar},
         error::ApiError,
+        images::{self, Fit, ImageError},
+        routes::image_response,
         state::AppState,
     },
 };
@@ -50,10 +51,10 @@ async fn upload(
         return Ok(back_to_account(AvatarNotice::Missing));
     }
 
-    let avatar = match avatar::process(file.to_vec()).await {
-        Ok(avatar) => avatar,
-        Err(AvatarError::NotAnImage) => return Ok(back_to_account(AvatarNotice::NotAnImage)),
-        Err(AvatarError::Internal) => return Err(ApiError::internal()),
+    let avatar = match images::process(file.to_vec(), Fit::Square(AVATAR_SIZE)).await {
+        Ok(image) => Avatar { content_type: image.content_type.to_owned(), data: image.data },
+        Err(ImageError::NotAnImage) => return Ok(back_to_account(AvatarNotice::NotAnImage)),
+        Err(ImageError::Internal) => return Err(ApiError::internal()),
     };
     db::account::save_avatar(&state.db, user.0.id, &avatar).await?;
     tracing::info!(user_id = %user.0.id, bytes = avatar.data.len(), "avatar uploaded");
@@ -82,14 +83,7 @@ async fn serve(State(state): State<AppState>, Path(id): Path<Uuid>) -> Result<Re
         .await?
         .ok_or_else(|| ApiError::new(StatusCode::NOT_FOUND, "no such avatar"))?;
 
-    let headers = [
-        // Stored by us, so only ever these two.
-        (header::CONTENT_TYPE, HeaderValue::from_static(if avatar.content_type == "image/png" { "image/png" } else { "image/jpeg" })),
-        // Each upload gets a new `?v=` in the URL, so any version can be
-        // cached for good.
-        (header::CACHE_CONTROL, HeaderValue::from_static("public, max-age=31536000, immutable")),
-        (header::X_CONTENT_TYPE_OPTIONS, HeaderValue::from_static("nosniff")),
-        (header::CONTENT_SECURITY_POLICY, HeaderValue::from_static("default-src 'none'; sandbox")),
-    ];
-    Ok((headers, avatar.data).into_response())
+    // Each upload gets a new `?v=` in the URL, so any version can be cached
+    // for good.
+    Ok(image_response(&avatar.content_type, avatar.data))
 }

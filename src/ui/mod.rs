@@ -6,7 +6,7 @@ mod components;
 mod pages;
 
 use crate::{api, models::account::Theme};
-use pages::{Account, Feed, FeedQuery, NotFound, SignIn};
+use pages::{Account, Feed, FeedQuery, NewPost, NotFound, SignIn};
 
 /// Every stylesheet, loaded once for the whole app rather than by the page
 /// that uses it, so client-side navigation never shows a page unstyled.
@@ -23,6 +23,7 @@ const STYLESHEETS: &[Asset] = &[
     asset!("/assets/styles/feed.css"),
     asset!("/assets/styles/auth.css"),
     asset!("/assets/styles/account.css"),
+    asset!("/assets/styles/compose.css"),
     asset!("/assets/styles/not_found.css"),
 ];
 
@@ -30,6 +31,8 @@ const STYLESHEETS: &[Asset] = &[
 enum Route {
     #[route("/?:..query")]
     Feed { query: FeedQuery },
+    #[route("/post")]
+    NewPost {},
     #[route("/account?:notice")]
     Account { notice: String },
     #[route("/signin?:error")]
@@ -72,4 +75,9 @@ fn Themed(children: Element) -> Element {
 /// The theme picked on the account page; set it to restyle the whole app.
 pub fn use_theme() -> Signal<Theme> {
     use_context()
+}
+
+/// What a server function's error says, for showing under a form.
+fn error_text(err: &HttpError) -> String {
+    err.message.clone().unwrap_or_else(|| err.status.to_string())
 }

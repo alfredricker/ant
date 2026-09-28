@@ -1,17 +1,21 @@
 //! Posts, their comments and likes.
 
 use chrono::{DateTime, Utc};
-use dioxus::prelude::*;
+use dioxus::{fullstack::FileStream, prelude::*};
 use uuid::Uuid;
 
 use crate::models::post::{Comment, Post, PostInput, PostKind, PostStatus};
 
 #[cfg(feature = "server")]
-use crate::server::{
-    auth::session::{CurrentUser, MaybeUser},
-    db::{self, posts::PostFilter},
-    error::{OrInternal, bad_request},
-    state::AppState,
+use crate::{
+    models::post::{POST_IMAGE_HOURLY_LIMIT, POST_IMAGE_MAX_BYTES, POST_IMAGE_SIDE, post_image_url},
+    server::{
+        auth::session::{CurrentUser, MaybeUser},
+        db::{self, posts::PostFilter},
+        error::{OrInternal, bad_request},
+        images::{self, Fit, ImageError},
+        state::AppState,
+    },
 };
 #[cfg(feature = "server")]
 use axum::Extension;
@@ -55,6 +59,59 @@ pub async fn create_post(mut input: PostInput) -> Result<Post, HttpError> {
     let id = db::posts::create(&state.db, user.0.id, &input).await.or_internal()?;
     let post = db::posts::find(&state.db, Some(user.0.id), id).await.or_internal()?;
     post.or_internal_server_error("post vanished after insert")
+}
+
+/// Uploads a picture for a post being written, and returns the URL to put in
+/// `PostInput::image_url`. The body is the file itself; the server redraws
+/// it (see `server::images`), so what's stored is never what was sent.
+#[post("/api/post-images", user: CurrentUser, state: Extension<AppState>)]
+pub async fn upload_post_image(file: FileStream) -> Result<String, HttpError> {
+    let recent = db::post_images::uploaded_last_hour(&state.db, user.0.id).await.or_internal()?;
+    if recent >= POST_IMAGE_HOURLY_LIMIT {
+        return Err(HttpError::new(
+            StatusCode::TOO_MANY_REQUESTS,
+            "that's a lot of pictures for one hour; try again later",
+        ));
+    }
+
+    let upload = read_upload(file, POST_IMAGE_MAX_BYTES).await?;
+    if upload.is_empty() {
+        return Err(bad_request("pick a picture first".into()));
+    }
+    let image = images::process(upload, Fit::Within(POST_IMAGE_SIDE)).await.map_err(|err| match err {
+        ImageError::NotAnImage => bad_request("that doesn't look like a picture; try a JPEG, PNG, WebP or GIF".into()),
+        ImageError::Internal => HttpError::new(StatusCode::INTERNAL_SERVER_ERROR, "internal error"),
+    })?;
+
+    let id = db::post_images::create(&state.db, user.0.id, &image).await.or_internal()?;
+    tracing::info!(user_id = %user.0.id, image_id = %id, bytes = image.data.len(), "post image uploaded");
+    Ok(post_image_url(id))
+}
+
+/// The whole upload, or a 413 as soon as it passes `max` bytes. Server
+/// functions' body isn't size-limited, so this is what stops a huge one.
+#[cfg(feature = "server")]
+async fn read_upload(mut file: FileStream, max: usize) -> Result<Vec<u8>, HttpError> {
+    use futures_util::StreamExt;
+
+    let too_big = || {
+        let mb = max / (1024 * 1024);
+        HttpError::new(StatusCode::PAYLOAD_TOO_LARGE, format!("pictures can be up to {mb} MB"))
+    };
+    // The browser says how big it is up front; no point reading a file
+    // that's too big.
+    if file.size().is_some_and(|size| size > max as u64) {
+        return Err(too_big());
+    }
+    let mut upload = Vec::new();
+    while let Some(chunk) = file.next().await {
+        let chunk = chunk.map_err(|_| bad_request("the upload broke off; try again".into()))?;
+        if upload.len() + chunk.len() > max {
+            return Err(too_big());
+        }
+        upload.extend_from_slice(&chunk);
+    }
+    Ok(upload)
 }
 
 #[put("/api/posts/{id}", user: CurrentUser, state: Extension<AppState>)]

@@ -157,11 +157,31 @@ impl PostInput {
         if self.looking_for.iter().any(|t| t.chars().count() > Self::MAX_TAG) {
             return Err(format!("skills are at most {} characters", Self::MAX_TAG));
         }
-        if let Some(url) = &self.image_url {
+        if let Some(url) = &self.image_url
+            && !is_post_image_url(url)
+        {
             check_url(url)?;
         }
         Ok(())
     }
+}
+
+/// Post pictures: the limit on what the browser sends, not what's stored
+/// (the server shrinks it to fit `POST_IMAGE_SIDE`).
+pub const POST_IMAGE_MAX_BYTES: usize = 8 * 1024 * 1024;
+pub const POST_IMAGE_SIDE: u32 = 1600;
+/// Uploads per person per hour; each picked picture is one, posted or not.
+pub const POST_IMAGE_HOURLY_LIMIT: i64 = 30;
+
+/// Where an uploaded post picture is served.
+pub fn post_image_url(id: Uuid) -> String {
+    format!("/api/post-images/{id}")
+}
+
+/// Whether `url` is one `post_image_url` made.
+pub fn is_post_image_url(url: &str) -> bool {
+    url.strip_prefix("/api/post-images/")
+        .is_some_and(|id| Uuid::parse_str(id).is_ok())
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -198,5 +218,42 @@ pub(crate) fn check_url(url: &str) -> Result<(), String> {
         Ok(())
     } else {
         Err("links must start with https://".into())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn input(image_url: &str) -> PostInput {
+        PostInput {
+            kind: PostKind::Art,
+            title: "Mural".into(),
+            body: "A big wall.".into(),
+            looking_for: vec![],
+            funded: false,
+            image_url: Some(image_url.into()),
+        }
+    }
+
+    #[test]
+    fn accepts_uploaded_pictures_and_https_links() {
+        assert!(input(&post_image_url(Uuid::nil())).validate().is_ok());
+        assert!(input("https://example.com/a.jpg").validate().is_ok());
+    }
+
+    #[test]
+    fn rejects_other_image_urls() {
+        for url in ["/api/post-images/nope", "/api/users/x/avatar", "javascript:alert(1)", "http://x.test/a.png"] {
+            assert!(input(url).validate().is_err(), "{url}");
+        }
+    }
+
+    #[test]
+    fn normalize_drops_blank_and_duplicate_tags() {
+        let mut post = input("https://example.com/a.jpg");
+        post.looking_for = vec![" Rust ".into(), "".into(), "rust".into(), "Audio".into()];
+        post.normalize();
+        assert_eq!(post.looking_for, ["Rust", "Audio"]);
     }
 }

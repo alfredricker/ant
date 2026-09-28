@@ -6,6 +6,7 @@ pub mod account;
 pub mod comments;
 pub mod conversations;
 pub mod passwords;
+pub mod post_images;
 pub mod posts;
 pub mod responses;
 pub mod sessions;

@@ -18,6 +18,7 @@ use crate::{
     ui::{
         Route,
         components::{Avatar, Brand},
+        error_text,
         pages::FeedQuery,
         use_theme,
     },
@@ -54,11 +55,6 @@ pub fn Account(notice: String) -> Element {
             Link { class: "button button-ghost account-back", to: Route::Feed { query: FeedQuery::default() }, "Back to the feed" }
         }
     }
-}
-
-/// What a server function's error says, for showing under a form.
-fn error_text(err: &HttpError) -> String {
-    err.message.clone().unwrap_or_else(|| err.status.to_string())
 }
 
 #[component]
